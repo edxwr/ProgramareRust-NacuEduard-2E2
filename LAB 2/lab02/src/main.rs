@@ -94,7 +94,7 @@ fn add_float(s : &mut String, mut f : f32)
         f *= 10.0;
     }
 
-    let put_dot : bool = {if multiply_count == 0 {false} else {true}}; // in caz ca nu are nimic fractionar
+    let put_dot : bool = multiply_count != 0; // in caz ca nu are nimic fractionar
 
     let mut float_integer : i32 = f as i32;
 
@@ -157,8 +157,8 @@ fn p3()
 fn main()
 {
     p1();
-    print!("\n");
+    println!();
     p2();
-    print!("\n");
+    println!();
     p3();
 }

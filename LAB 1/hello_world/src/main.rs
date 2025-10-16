@@ -37,7 +37,7 @@ fn is_coprime(mut a: i32, mut b: i32) -> bool {
         b = r;
         r = a % b;
     }
-    return b == 1;
+    b == 1
 }
 fn p2() {
     for i in 1..101 {
