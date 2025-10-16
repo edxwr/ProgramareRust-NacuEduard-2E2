@@ -1,0 +1,6 @@
+*.lock
+.vscode
+**/debug/
+**/target/
+*.pdb
+**/*.rs.bk
