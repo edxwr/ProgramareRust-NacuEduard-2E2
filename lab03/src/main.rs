@@ -52,7 +52,7 @@ fn checked_addition(x : u32, y : u32) -> u32
     {
         panic!("Overflow for u32 addition: {x} + {y}");
     }
-
+    println!("{x} + {y} = {}", x + y);
     x + y
 }
 
@@ -63,6 +63,7 @@ fn checked_multiplication(x : u32, y : u32) -> u32
         panic!("Overflow for u32 multiplication: {x} * {y}");
     }
 
+    println!("{x} * {y} = {}", x * y);
     x * y
 }
 
@@ -88,6 +89,7 @@ fn checked_addition2(x : u32, y : u32) -> Result<u32, MyError>
     }
     else
     {
+        println!("{x} + {y} = {}", x * y);
         Ok(x + y)
     }
 }
@@ -100,6 +102,7 @@ fn checked_multiplication2(x : u32, y : u32) -> Result<u32, MyError>
     }
     else
     {
+        println!("{x} * {y} = {}", x * y);
         Ok(x * y)
     }
 }
@@ -193,7 +196,7 @@ fn char_to_number_hex (c : char) -> Result<u32, CharErrors>
     }
 }
 
-fn print_error (error : CharErrors)
+fn print_char_error (error : CharErrors)
 {
     match error
     {
@@ -202,6 +205,14 @@ fn print_error (error : CharErrors)
         CharErrors::CharNotBase16Digit => println!("Caracterul nu este cifra in baza 16"),
         CharErrors::CharNotLetter => println!("Caracterul nu este litera"),
         CharErrors::CharNotPrintable => println!("Caracterul nu este printabil")
+    }
+}
+
+fn print_overflow_error (error : MyError) -> &'static str
+{
+    match error
+    {
+        MyError::Overflow => "Overflow"
     }
 }
 
@@ -224,11 +235,11 @@ fn p5() -> Result<(), CharErrors>
     println!("{}", char_to_number_hex('£')?);
     println!("{}", char_to_number_hex('J')?);
 
-    print_error(CharErrors::CharNotAscii);
-    print_error(CharErrors::CharNotDigit);
-    print_error(CharErrors::CharNotBase16Digit);
-    print_error(CharErrors::CharNotLetter);
-    print_error(CharErrors::CharNotPrintable);
+    print_char_error(CharErrors::CharNotAscii);
+    print_char_error(CharErrors::CharNotDigit);
+    print_char_error(CharErrors::CharNotBase16Digit);
+    print_char_error(CharErrors::CharNotLetter);
+    print_char_error(CharErrors::CharNotPrintable);
 
     Ok(())
 }
@@ -239,14 +250,16 @@ fn main()
     println!();
     p2();
     println!();
-    if p3().is_err()
+    match p3()
     {
-        panic!("p3() has error");
+        Ok(()) => (),
+        Err(e) => println!("{}", print_overflow_error(e))
     }
     println!();
-    if p5().is_err()
+    match p5()
     {
-        panic!("p5() has error");
+        Ok(()) => (),
+        Err(e) => print_char_error(e)
     }
 
 }

@@ -1,8 +1,8 @@
 use std::{io, fs};
 
-fn p1() -> Result<(), io::Error>
+fn p1(file_path : &str) -> Result<(), io::Error>
 {
-    let s : String = fs::read_to_string("src/example.txt")?;
+    let s : String = fs::read_to_string(file_path)?;
 
     let mut longest_bytes_string : String = String::from("");
     let mut longest_chars_string : String = String::from("");
@@ -19,7 +19,7 @@ fn p1() -> Result<(), io::Error>
         }
     }
 
-    println!("Cea mai lunga linie dupa bytes: {}\nCea mai lunga linie dupa caractere: {}", longest_bytes_string, longest_chars_string);
+    println!("Cea mai lunga linie dupa bytes:\t{}\nCea mai lunga linie dupa caractere:\t{}", longest_bytes_string, longest_chars_string);
 
     Ok(())
 }
@@ -36,18 +36,16 @@ fn p2(string : String) -> Result<String, String>
             has_error = true;
             break;
         }
+        
+        if c.is_ascii_lowercase()
+        {
+            let index : u8 = c as u8 - 97;
+            new_string.push((if index < 13 { index + 13 } else { index - 13 } + 97) as char);
+        }
         else
         {
-            if c.is_ascii_lowercase()
-            {
-                let index : u8 = c as u8 - 97;
-                new_string.push((if index < 13 { index + 13 } else { index - 13 } + 97) as char);
-            }
-            else
-            {
-                let index : u8 = c as u8 - 65;
-                new_string.push((if index < 13 { index + 13 } else { index - 13 } + 65) as char);
-            }
+            let index : u8 = c as u8 - 65;
+            new_string.push((if index < 13 { index + 13 } else { index - 13 } + 65) as char);
         }
     }
 
@@ -62,9 +60,9 @@ fn p2(string : String) -> Result<String, String>
 
 }
 
-fn p3() -> Result<String, io::Error>
+fn p3(file_path : &str) -> Result<String, io::Error>
 {
-    let string : String = fs::read_to_string("src/p3file.txt")?;
+    let string : String = fs::read_to_string(file_path)?;
     let mut new_string : String = String::with_capacity(string.capacity());
 
     for word in string.split(' ')
@@ -82,21 +80,90 @@ fn p3() -> Result<String, io::Error>
 
     Ok(new_string)
 }
+
+fn p4(file_path : &str) -> Result<(), io::Error>
+{
+    let string : String = fs::read_to_string(file_path)?;
+
+    for line in string.lines()
+    {
+        if line.starts_with('#')
+        {
+            continue;
+        }
+        else
+        {
+            let mut k : usize = 1;
+            let items = line.split_whitespace().rev();
+            let item_count = items.clone().count();
+            for item in items
+            {
+                if k < item_count - 1
+                {
+                    print!("{}, ", item);
+                }
+                else if k == item_count - 1
+                {
+                    print!("{} ", item);
+                }
+                else
+                {
+                    println!("=> {}", item);
+                }
+
+                k += 1;
+
+            }
+        }
+    }
+
+    Ok(())
+}
+
 fn main()
 {
-    match p1()
+    match p1("src/example.txt")
     {
         Ok(()) => (),
         Err(e) => println!("{}", e)
     }
+    match p1("invalid_folder/example.txt")
+    {
+        Ok(()) => (),
+        Err(e) => println!("{}", e)
+    }
+    ///////////////////////////////////////
     match p2(String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"))
     {
         Ok(string) => println!("Stringul dupa ROT13:\t{}", string),
         Err(e) => println!("{}", e)
     }
-    match p3()
+    match p2(String::from("ABCDEFG7..,,5.3.4,323abcdefghijklmnopqrstuvwxyz"))
+    {
+        Ok(string) => println!("Stringul dupa ROT13:\t{}", string),
+        
+        Err(e) => println!("{}", e)
+    }
+    ///////////////////////////////////////
+    match p3("src/p3file.txt")
     {
         Ok(string) => println!("Stringul dupa abrevieri:\t{}", string),
+        Err(e) => println!("{}", e)
+    }
+    match p3("invalid_folder/p3file.txt")
+    {
+        Ok(string) => println!("Stringul dupa abrevieri:\t{}", string),
+        Err(e) => println!("{}", e)
+    }
+    ///////////////////////////////////////
+    match p4("/etc/hosts")
+    {
+        Ok(()) => (),
+        Err(e) => println!("{}", e)
+    }
+    match p4("/invalid_folder/hosts")
+    {
+        Ok(()) => (),
         Err(e) => println!("{}", e)
     }
 }
