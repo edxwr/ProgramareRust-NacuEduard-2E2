@@ -129,7 +129,7 @@ impl Terminal
                             {
                                 if command.get_name() == cmd
                                 {
-                                    command.exec(&line[cmd.len()..]);
+                                    command.exec(&line.trim_start()[cmd.len()..]);
                                     continue 'start;
                                 }
                                 else if command.get_name().eq_ignore_ascii_case(cmd)
