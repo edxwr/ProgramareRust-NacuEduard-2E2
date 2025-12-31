@@ -16,6 +16,14 @@ struct Quote{
     text : String
 }
 
+#[derive(sqlx::FromRow)]
+struct Episode{
+    title : String,
+    season : i64,
+    episode_num : i64,
+    runtime : String
+}
+
 #[poise::command(slash_command)]
 async fn ping(ctx: Context<'_>) -> Result<(), Error>{
     ctx.say("Pong!").await?;
@@ -37,12 +45,11 @@ async fn quote(ctx: Context<'_>) -> Result<(), Error>{
 #[poise::command(slash_command)]
 async fn doctor(ctx: Context<'_>, #[description = "Al catelea doctor?"] nth_doctor : i64) -> Result<(), Error>{
     let row = sqlx::query(
-        &format!("SELECT url FROM photos WHERE id = {}", nth_doctor)
+        "SELECT url FROM photos WHERE id = ?"
     )
+    .bind(nth_doctor)
     .fetch_optional(&ctx.data().database)
     .await?;
-
-    println!("{nth_doctor}");
 
     match row
     {
@@ -50,6 +57,30 @@ async fn doctor(ctx: Context<'_>, #[description = "Al catelea doctor?"] nth_doct
         None => ctx.say(format!("Nu exista doctorul cu numarul {}!", nth_doctor)).await?
     };
 
+    Ok(())
+}
+
+///Episoadele care contin textul dat in titlu
+#[poise::command(slash_command)]
+async fn episode(ctx: Context<'_>, #[description = "Textul care trebuie cautat"] text : String) -> Result<(), Error>{
+    let result : Vec<Episode> = sqlx::query_as(
+        "SELECT title, season, episode_num, runtime FROM episodes WHERE title LIKE ?"
+    )
+    .bind(format!("%{}%", text))
+    .fetch_all(&ctx.data().database)
+    .await?;
+
+    if result.is_empty(){
+        ctx.say(format!("Nu s-a gasit niciun episod cu \"{}\" in titlu!", text)).await?;
+    }
+    else {
+        let mut output : String = String::from("Am gasit urmatoarele episoade:\n");
+        for ep in result
+        {
+            output.push_str(&format!("**S{:02}:E{:02}** | *Titlu* : **{}** | *Durata* : **{}**\n", ep.season, ep.episode_num, ep.title, ep.runtime));
+        }
+        ctx.say(output).await?;
+    }
     Ok(())
 }
 
@@ -62,7 +93,7 @@ async fn main(){
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![ping(), quote(), doctor()],
+            commands: vec![ping(), quote(), doctor(), episode()],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
