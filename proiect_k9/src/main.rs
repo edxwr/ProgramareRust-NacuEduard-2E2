@@ -22,6 +22,7 @@ async fn ping(ctx: Context<'_>) -> Result<(), Error>{
     Ok(())
 }
 
+///Citat random din Doctor Who
 #[poise::command(slash_command)]
 async fn quote(ctx: Context<'_>) -> Result<(), Error>{
     let result : Quote = sqlx::query_as(
@@ -32,6 +33,7 @@ async fn quote(ctx: Context<'_>) -> Result<(), Error>{
     Ok(())
 }
 
+///Poza cu al n-lea doctor din Doctor Who
 #[poise::command(slash_command)]
 async fn doctor(ctx: Context<'_>, #[description = "Al catelea doctor?"] nth_doctor : i64) -> Result<(), Error>{
     let row = sqlx::query(
@@ -39,6 +41,8 @@ async fn doctor(ctx: Context<'_>, #[description = "Al catelea doctor?"] nth_doct
     )
     .fetch_optional(&ctx.data().database)
     .await?;
+
+    println!("{nth_doctor}");
 
     match row
     {
