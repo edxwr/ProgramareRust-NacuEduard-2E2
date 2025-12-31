@@ -2,6 +2,7 @@ use poise::serenity_prelude as serenity;
 use dotenvy::dotenv;
 use std::env;
 use sqlx::SqlitePool;
+use sqlx::Row;
 
 struct Data {
     database : SqlitePool
@@ -31,6 +32,23 @@ async fn quote(ctx: Context<'_>) -> Result<(), Error>{
     Ok(())
 }
 
+#[poise::command(slash_command)]
+async fn doctor(ctx: Context<'_>, #[description = "Al catelea doctor?"] nth_doctor : i64) -> Result<(), Error>{
+    let row = sqlx::query(
+        &format!("SELECT url FROM photos WHERE id = {}", nth_doctor)
+    )
+    .fetch_optional(&ctx.data().database)
+    .await?;
+
+    match row
+    {
+        Some(row) => { ctx.say(row.get::<String, _>("url")).await? }
+        None => ctx.say(format!("Nu exista doctorul cu numarul {}!", nth_doctor)).await?
+    };
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main(){
     dotenv().ok();
@@ -40,7 +58,7 @@ async fn main(){
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![ping(), quote()],
+            commands: vec![ping(), quote(), doctor()],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
