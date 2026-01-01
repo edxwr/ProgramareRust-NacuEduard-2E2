@@ -3,6 +3,7 @@ use dotenvy::dotenv;
 use std::env;
 use sqlx::SqlitePool;
 use sqlx::Row;
+use serenity::all::UserId;
 
 struct Data {
     database : SqlitePool
@@ -22,6 +23,12 @@ struct Episode{
     season : i64,
     episode_num : i64,
     runtime : String
+}
+
+#[derive(sqlx::FromRow)]
+struct User{
+    id : String,
+    score : i64
 }
 
 #[poise::command(slash_command)]
@@ -71,15 +78,51 @@ async fn episode(ctx: Context<'_>, #[description = "Textul care trebuie cautat"]
     .await?;
 
     if result.is_empty(){
-        ctx.say(format!("Nu s-a gasit niciun episod cu \"{}\" in titlu!", text)).await?;
+        ctx.say(format!("**Nu s-a gasit niciun episod cu \"{}\" in titlu!**", text)).await?;
     }
     else {
-        let mut output : String = String::from("Am gasit urmatoarele episoade:\n");
+        let mut output : String = String::from("**🎞️ Am gasit urmatoarele episoade: 🎞️**\n");
         for ep in result
         {
-            output.push_str(&format!("**S{:02}:E{:02}** | *Titlu* : **{}** | *Durata* : **{}**\n", ep.season, ep.episode_num, ep.title, ep.runtime));
+            output.push_str(&format!("**S{:02}**:**E{:02}** | Titlu : **{}** | Durata : **{}**\n", ep.season, ep.episode_num, ep.title, ep.runtime));
         }
         ctx.say(output).await?;
+    }
+    Ok(())
+}
+
+///Clasamentul cu punctele tuturor userilor
+#[poise::command(slash_command)]
+async fn points(ctx: Context<'_>) -> Result<(), Error>{
+    ctx.defer().await?;
+    
+    let result : Vec<User> = sqlx::query_as(
+        "SELECT id, score FROM users ORDER BY score DESC LIMIT 10"
+    )
+    .fetch_all(&ctx.data().database)
+    .await?;
+
+
+    if result.is_empty(){
+        ctx.say("**Niciun user nu a raspuns inca la vreo intrebare!**").await?;
+    }
+    else {
+        let mut clasament : String = String::from("**🏆 TOP 10 Clasament: 🏆**\n");
+        for user in result{
+            let id_numar = match user.id.parse::<u64>(){
+                Ok(id) => id,
+                Err(err) => { println!("**Eroare la parsare user id: {} | {}**\n", user.id, err); continue }
+            };
+
+            let user_id = UserId::new(id_numar);
+            let username = match user_id.to_user(ctx).await{
+                Ok(user_struct) => user_struct.global_name.unwrap_or(user_struct.name),
+                Err(err) => { println!("**! Eroare la preluare username pentru user id: {} | {} !**\n", id_numar, err); continue }
+            };
+
+            clasament.push_str(&format!("**{}** | {} points\n", username, user.score));
+        }
+        ctx.say(clasament).await?;
     }
     Ok(())
 }
@@ -93,7 +136,7 @@ async fn main(){
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![ping(), quote(), doctor(), episode()],
+            commands: vec![ping(), quote(), doctor(), episode(), points()],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
