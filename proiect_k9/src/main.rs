@@ -182,7 +182,7 @@ async fn run_questions_loop(db : SqlitePool, ctx : serenity::all::Context, chann
         let answer : String = qna.answer;
 
         if let Err(e) = channel_id.say(&ctx, format!("**❓ Intrebare noua! ❓** : **{}**\n*(Aveti {} secunde pentru a raspunde)*", question, TIMP_PENTRU_INTREBARE)).await{
-            println!("Eroare la channel_id.say(): {}", e);
+            println!("Eroare la channel_id.say() 185: {}", e);
             break;
         }
 
@@ -205,7 +205,7 @@ async fn run_questions_loop(db : SqlitePool, ctx : serenity::all::Context, chann
                 .await{
                     println!("Eroare la query bd la intrebari(): {}", e);
                 }
-                if let Err(e) = msg.reply(&ctx, format!("**🎉 Raspuns corect! ({}) 🎉** Ai primit 1 punct!\nVine urmatoarea intrebare!", answer)).await{
+                if let Err(e) = msg.reply(&ctx, format!("**🎉 Raspuns corect! ({}) 🎉** Ai primit 1 punct!\nVine urmatoarea intrebare!\nhttps://tenor.com/view/sui-siu-ronaldo-football-portugal-gif-25997537", answer)).await{
                     println!("Eroare la msg.reply() la castigator intrebari: {}", e);
                 }
                 break;
